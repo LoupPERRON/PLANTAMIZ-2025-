@@ -7,6 +7,7 @@ void nouvellePartie(void);
 void chargerPartie(void);
 void afficherRegles(void);
 
+
 static void nettoyerBuffer(void)
 {
     int c;
@@ -185,4 +186,5 @@ int afficherMenuPrincipal(void)
 
     return 0; // tu peux renvoyer un code d'état si besoin
 }
+
 
