@@ -1,1 +1,94 @@
+#include <stdio.h>
+#include <stdlib.h>    // pour system("cls") ou system("clear")
+#include "menu.h"
+
+// Prototypes des fonctions de jeu (à définir dans d'autres fichiers)
+void nouvellePartie(void);
+void chargerPartie(void);
+void afficherRegles(void);
+
+static void nettoyerBuffer(void)
+{
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF) { }
+}
+
+static void pauseConsole(void)
+{
+    printf("\nAppuyez sur Entrée pour continuer...");
+    nettoyerBuffer();
+}
+
+// Affiche une fois le menu
+static void afficherMenuTexte(void)
+{
+    printf("=====================================\n");
+    printf("          PLANTAMIZ 2025\n");
+    printf("=====================================\n");
+    printf("1. Nouvelle partie\n");
+    printf("2. Charger une partie\n");
+    printf("3. Règles du jeu\n");
+    printf("4. Quitter\n");
+    printf("-------------------------------------\n");
+    printf("Votre choix : ");
+}
+
+int afficherMenuPrincipal(void)
+{
+    int choix = 0;
+    int continuer = 1;
+
+    while (continuer)
+    {
+        // Efface l'écran (Windows : cls, Linux/Mac : clear)
+#ifdef _WIN32
+        system("cls");
+#else
+        system("clear");
+#endif
+
+        afficherMenuTexte();
+
+        if (scanf("%d", &choix) != 1) {
+            // saisie invalide (lettres, etc.)
+            printf("\nEntrée invalide, merci de saisir un nombre.\n");
+            nettoyerBuffer();
+            pauseConsole();
+            continue;
+        }
+        nettoyerBuffer(); // enlever le '\n'
+
+        switch (choix)
+        {
+        case 1:
+            // Lancer une nouvelle partie
+            nouvellePartie();
+            break;
+
+        case 2:
+            // Charger une partie
+            chargerPartie();
+            break;
+
+        case 3:
+            // Afficher les règles du jeu
+            afficherRegles();
+            pauseConsole();
+            break;
+
+        case 4:
+            // Quitter le jeu
+            printf("\nAu revoir !\n");
+            continuer = 0;
+            break;
+
+        default:
+            printf("\nChoix invalide, veuillez recommencer.\n");
+            pauseConsole();
+            break;
+        }
+    }
+
+    return 0; // tu peux renvoyer un code d'état si besoin
+}
 
