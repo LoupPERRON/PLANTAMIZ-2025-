@@ -1,110 +1,42 @@
 #ifndef PLANTAMITZ_H
 #define PLANTAMITZ_H
 
-// Taille du plateau (CDC)
-#define NB_LIGNES   25
-#define NB_COLONNES 45
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+// Include Windows API for console functions (like colors, cursor control) if on Windows
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
-#define VIDE ' '              // case vide après suppression
-#define NB_TYPES_ITEM 5       // S, F, P, O, M
+// Define board dimensions
+#define BOARD_ROWS 25
+#define BOARD_COLS 45
+typedef struct GameState {
+    int score;
+    int level;
+    // Add other game state variables as needed
+} GameState;
 
-// Codes des items (CDC)
-// S = soleil, F = fraise, P = pomme, O = oignon, M = mandarine
-#define ITEM_SOLEIL    'S'
-#define ITEM_FRAISE    'F'
-#define ITEM_POMME     'P'
-#define ITEM_OIGNON    'O'
-#define ITEM_MANDARINE 'M'
+// Define the GameState structure holding the game board and state variables.
+typedef struct {
+    char board[BOARD_ROWS][BOARD_COLS];  // The game board represented as a 25x45 grid of characters
+    int movesRemaining;                 // Moves remaining for the player
+    int targetCount;                    // Total items to collect to fulfill the contract (simplified goal)
+    int collectedCount;                 // Total items collected so far towards the contract
+    // Future extension: We could add detailed contract targets for each item type and track collected counts per type.
+} GameState;
 
-/******************************************************
- * Nom : initialiserAleatoire
- * Rôle : initialise la graine du générateur aléatoire
- * Paramètres : aucun
- * Résultat : aucun
- ******************************************************/
-void initialiserAleatoire(void);
+// Initialize the game state (set up board, contract, moves, etc.)
+void initGame(GameState *game);
 
-/******************************************************
- * Nom : genererItemAleatoire
- * Rôle : retourne un item aléatoire parmi S,F,P,O,M
- * Paramètres : aucun
- * Résultat : un caractère représentant l’item
- ******************************************************/
-char genererItemAleatoire(void);
+// Run the main game loop until the contract is fulfilled or moves are exhausted.
+void gameLoop(GameState *game);
 
-/******************************************************
- * Nom : initialiserGrille
- * Rôle : remplit la grille avec des items aléatoires
- *        puis la stabilise (plus aucun groupe de 3+)
- * Paramètres :
- *   grille (IN/OUT) : matrice 25x45 du plateau
- * Résultat : aucun
- ******************************************************/
-void initialiserGrille(char grille[NB_LIGNES][NB_COLONNES]);
+// Check if the game has been won (contract fulfilled).
+bool isGameWon(const GameState *game);
 
-/******************************************************
- * Nom : afficherGrille
- * Rôle : affiche la grille avec des couleurs
- * Paramètres :
- *   grille (IN) : matrice 25x45 du plateau
- * Résultat : aucun
- ******************************************************/
-void afficherGrille(const char grille[NB_LIGNES][NB_COLONNES]);
-
-/******************************************************
- * Nom : detecterGroupesSimples
- * Rôle : détecte les groupes horizontaux/verticaux
- *        de 3 items ou plus (même nature)
- * Paramètres :
- *   grille (IN)  : plateau
- *   marque (OUT) : matrice d'entiers, 1 si à supprimer
- * Résultat :
- *   nombre total de cases marquées à supprimer
- ******************************************************/
-int detecterGroupesSimples(const char grille[NB_LIGNES][NB_COLONNES],
-                           int marque[NB_LIGNES][NB_COLONNES]);
-
-/******************************************************
- * Nom : supprimerGroupes
- * Rôle : remplace par VIDE toutes les cases marquées
- * Paramètres :
- *   grille (IN/OUT) : plateau
- *   marque (IN)     : cases à supprimer (1 = supprimer)
- * Résultat : aucun
- ******************************************************/
-void supprimerGroupes(char grille[NB_LIGNES][NB_COLONNES],
-                      int marque[NB_LIGNES][NB_COLONNES]);
-
-/******************************************************
- * Nom : appliquerGravite
- * Rôle : fait "tomber" les items vers le bas pour
- *        combler les trous dans chaque colonne
- * Paramètres :
- *   grille (IN/OUT) : plateau
- * Résultat : aucun
- ******************************************************/
-void appliquerGravite(char grille[NB_LIGNES][NB_COLONNES]);
-
-/******************************************************
- * Nom : remplirAvecNouveauxItems
- * Rôle : remplit les cases VIDES avec de nouveaux items
- * Paramètres :
- *   grille (IN/OUT) : plateau
- * Résultat : aucun
- ******************************************************/
-void remplirAvecNouveauxItems(char grille[NB_LIGNES][NB_COLONNES]);
-
-/******************************************************
- * Nom : stabiliserGrille
- * Rôle : applique en boucle :
- *        - détection de groupes
- *        - suppression
- *        - gravité + remplissage
- *        jusqu'à ce qu'il n'y ait plus de groupe
- * Paramètres :
- *   grille (IN/OUT) : plateau
- * Résultat : aucun
- ******************************************************/
-void stabiliserGrille(char grille[NB_LIGNES][NB_COLONNES]);
+// Check if the game is over (no moves remaining and contract not fulfilled).
+bool isGameOver(const GameState *game);
 
 #endif // PLANTAMITZ_H
