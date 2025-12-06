@@ -17,8 +17,8 @@ static char rand_item()
 void board_init(Board *b)
 {
     srand((unsigned)time(NULL));
-    // Generate full boards up to MAX_ATTEMPTS until we get one without initial matches.
-    // This avoids an unpredictable long loop that tweaks random cells endlessly.
+    // Génère des plateaux jusqu'à MAX_ATTEMPTS afin d'obtenir un plateau sans correspondances
+    // évite une boucle  qui rééchantillonne des cellules aléatoires
     const int MAX_ATTEMPTS = 1000;
     int attempts = 0;
     do {
@@ -32,16 +32,16 @@ void board_init(Board *b)
     } while(!board_no_initial_matches(b));
 
     if(attempts >= MAX_ATTEMPTS){
-        // Fallback: if we didn't find a clean board, break obvious triples by re-rolling offending cells.
+        //Repli : si aucun plateau n'a été trouvé,casser les triples en rééchantillonnant les cellules .
         for(int r=0;r<ROWS;r++){
             for(int c=0;c<COLS;c++){
-                // horizontal triple starting here
+                // triple horizontal commençant ici
                 if(c <= COLS-3){
                     if(b->cells[r][c] != '\0' && b->cells[r][c] == b->cells[r][c+1] && b->cells[r][c] == b->cells[r][c+2]){
                         b->cells[r][c] = rand_item();
                     }
                 }
-                // vertical triple starting here
+                // triple vertical commençant ici
                 if(r <= ROWS-3){
                     if(b->cells[r][c] != '\0' && b->cells[r][c] == b->cells[r+1][c] && b->cells[r][c] == b->cells[r+2][c]){
                         b->cells[r][c] = rand_item();
@@ -50,32 +50,27 @@ void board_init(Board *b)
             }
         }
     }
-
-    // debug: indicate attempts (helps diagnose hangs)
-    // note: printing here is safe because caller prints debug messages already
-    // but keep it non-mandatory; flush to ensure visibility when running.
-    // printf("[DEBUG] board_init attempts=%d\n", attempts); fflush(stdout);
 }
 
 static int color_for_char(char ch)
 {
     switch(ch){
-        case 'S': return 14; // yellow
-        case 'F': return 12; // red
-        case 'P': return 10; // green
+        case 'S': return 14; // jaune
+        case 'F': return 12; // rouge
+        case 'P': return 10; // vert
         case 'O': return 3;  // turquoise
-        case 'M': return 6;  // brown/olive
-        default: return 15;  // white
+        case 'M': return 6;  // marron
+        default: return 15;  // blanc
     }
 }
 
 void board_print(Board *b, int cursor_r, int cursor_c, int selected_r, int selected_c)
 {
-    // If console buffer is too small to position characters safely, fallback to plain print
+    // Si le tampon de la console est trop petit pour positionner les caractères en sécurité, revenir à un affichage simple
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
     if(!GetConsoleScreenBufferInfo(h, &csbi)){
-        // couldn't get console info -> fallback ASCII print
+        //impossible d'obtenir les informations de la console -> revenir à l'affichage ASCII
         for(int r=0;r<ROWS;r++){
             for(int c=0;c<COLS;c++){
                 char ch = b->cells[r][c]; if(ch=='\0') ch=' ';
@@ -91,7 +86,7 @@ void board_print(Board *b, int cursor_r, int cursor_c, int selected_r, int selec
         int width = csbi.dwSize.X;
         int height = csbi.dwSize.Y;
         if(width < COLS*2 || height < ROWS+6){
-            // fallback simple ascii print
+            //repli : retour à un affichage ASCII simple
             for(int r=0;r<ROWS;r++){
                 for(int c=0;c<COLS;c++){
                     char ch = b->cells[r][c]; if(ch=='\0') ch=' ';
@@ -106,23 +101,23 @@ void board_print(Board *b, int cursor_r, int cursor_c, int selected_r, int selec
         }
     }
 
-    // top margin
+    //marge supérieure
     int base_row = 3;
     for(int r=0;r<ROWS;r++){
         for(int c=0;c<COLS;c++){
             int scr_r = base_row + r;
-            int scr_c = c*2; // spacing
+            int scr_c = c*2; // espace entre les colonnes
             gotoligcol(scr_r, scr_c);
             char ch = b->cells[r][c];
             if(ch == '\0') ch = ' ';
             int col = color_for_char(ch);
             if(r==selected_r && c==selected_c){
-                // selected: lowercase and bright background
+                //sélectionné : caractère en arrière-plan lumineux
                 Color(col, 4);
                 putchar(tolower(ch));
                 Color(15,0);
             } else if(r==cursor_r && c==cursor_c){
-                // cursor: inverse background
+                //curseur : arrière-plan inversé
                 Color(0, 14);
                 putchar(ch);
                 Color(15,0);
@@ -133,7 +128,7 @@ void board_print(Board *b, int cursor_r, int cursor_c, int selected_r, int selec
             }
         }
     }
-    // move cursor after board
+    // déplacer curseur après affichage du plateau
     gotoligcol(base_row+ROWS+1,0);
     fflush(stdout);
 }
@@ -164,14 +159,14 @@ void board_swap(Board *b, int r1,int c1,int r2,int c2)
     b->cells[r2][c2] = tmp;
 }
 
-// Find horizontal and vertical sequences >=3, rectangles and H-like shapes.
-// Marks removals and updates board; returns true if any removal occurred and updates points.
+//Trouve les séquences horizontales et verticales >=3,rectangles et formes en H
+//Marque les cellules à supprimer et met à jour la grille , renvoie true si une suppression a eu lieu et incrémente les points
 bool board_find_and_remove_matches(Board *b, int *points)
 {
     bool any_global = false;
     int points_accum = 0;
 
-    // Repeat until stabilized
+    //Répéter jusqu'à stabilisation
     while(1){
         bool remove[ROWS][COLS];
         memset(remove,0,sizeof(remove));
@@ -228,7 +223,7 @@ bool board_find_and_remove_matches(Board *b, int *points)
             }
         }
 
-        // rectangle detection (simple brute-force) at least 2x2
+        //détection de rectangles (brute-force) d'au moins 2x2
         for(int r=0;r<ROWS;r++){
             for(int c=0;c<COLS;c++){
                 char ch = b->cells[r][c];
@@ -247,14 +242,14 @@ bool board_find_and_remove_matches(Board *b, int *points)
             }
         }
 
-        // H-shape detection: two vertical bars of 3 connected by middle horizontal (3x3 pattern)
+        //Détection en H : deux barres verticales de 3 reliées par une barre horizontale centrale (motif 3x3)
         for(int r=0;r+2<ROWS;r++){
             for(int c=0;c+2<COLS;c++){
                 char ch = b->cells[r][c];
                 if(ch && b->cells[r+1][c]==ch && b->cells[r+2][c]==ch && b->cells[r][c+2]==ch && b->cells[r+1][c+2]==ch && b->cells[r+2][c+2]==ch && b->cells[r+1][c+1]==ch){
                     any=true;
                     for(int rr=r;rr<r+3;rr++) for(int cc=c;cc<c+3;cc++) remove[rr][cc]=true;
-                    points_accum += 2*9; // 2 * X where X = number of items (here 9)
+                    points_accum += 2*9; //2 * X où X = nombre d'items (ici 9)
                 }
             }
         }
@@ -262,10 +257,10 @@ bool board_find_and_remove_matches(Board *b, int *points)
         if(!any) break;
 
         any_global = true;
-        // apply removals
+        //appliquer les suppressions
         for(int r=0;r<ROWS;r++) for(int c=0;c<COLS;c++) if(remove[r][c]) b->cells[r][c]='\0';
         board_apply_gravity(b);
-        // continue loop to detect cascades
+        //continuer  boucle pour détecter cascades
     }
 
     if(points) *points += points_accum;
@@ -274,7 +269,7 @@ bool board_find_and_remove_matches(Board *b, int *points)
 
 bool board_no_initial_matches(Board *b)
 {
-    // check horizontal/vertical >=3
+    //vérifier séquences horizontales/verticales >= 3
     for(int r=0;r<ROWS;r++){
         for(int c=0;c<COLS-2;c++){
             char ch = b->cells[r][c]; if(ch==0) continue;
