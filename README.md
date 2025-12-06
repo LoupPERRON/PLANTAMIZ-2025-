@@ -2,7 +2,7 @@ Plantamitz - Jeu console en C
 
 Description:
 - Implémentation minimaliste en C du jeu inspiré de FarmHeroes/CandyCrush.
-- Plateau 25x45, items: S,F,P,O,M.
+- Plateau 10x10, items: S,F,P,O,M.
 - Contrats: 3 niveaux (codés en dur) de difficulté croissante.
 
 Build & Run (Windows, MinGW / gcc):
