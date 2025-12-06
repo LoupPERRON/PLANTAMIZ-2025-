@@ -103,7 +103,7 @@ void game_run(int reprendre) // Démarre le jeu, reprendre: 0=nouvelle partie, 1
         init_tableau(&b);
         int moves_left = contrats[level].maxMoves;
         int progress[5] = {0,0,0,0,0};
-        time_t start = time(NULL);
+        time_t debut = time(NULL);
         (void)0;
 
         while(1){ // boucle principale du niveau
@@ -112,20 +112,29 @@ void game_run(int reprendre) // Démarre le jeu, reprendre: 0=nouvelle partie, 1
             Tableau_print(&b,cursor_r,cursor_c,selected_r,selected_c);
             printf("Controls: z q s d pour bouger, ESPACE pour choisir/echanger, p pour quitter\n");
             {
-                int restant = contrats[level].tempsSecondes - (int)(time(NULL)-start);
+                int restant = contrats[level].tempsSecondes - (int)(time(NULL)-debut);
                 if(restant < 0) restant = 0;
                 printf("Temps restants: %d secondes\n", restant );
             }
 
-            // boucle d'entrée non bloquante : attendre l'appui d'une touche et le minuteur visible
-            while(!kbhit()){
-                //  mettre à jour l'affichage du temps de temps en temps
-                Sleep(80);
-                int ecoule = (int)(time(NULL)-start);
-                if(ecoule >= contrats[level].tempsSecondes){
-                    // fin du temps
-                    moves_left = 0;
-                    break;
+            // boucle d'entrée non bloquante : attendre l'appui d'une touche
+            // Actualise le timer visuel toutes les ~80ms en réécrivant la ligne "Temps restants"
+            {
+                int ligne_temps = 3 + LIGNES + 2; // base_row(3) + LIGNES + 2 -> ligne où "Temps restants" est affiché
+                while(!kbhit()){
+                    Sleep(80);
+                    int ecoule = (int)(time(NULL)-debut);
+                    int restant = contrats[level].tempsSecondes - ecoule;
+                    if(restant < 0) restant = 0;
+                    gotoligcol(ligne_temps,0);
+                    // réécrire la ligne du temps (sans saut de ligne) et forcer flush
+                    printf("Temps restants: %d secondes   ", restant);
+                    fflush(stdout);
+                    if(ecoule >= contrats[level].tempsSecondes){
+                        // fin du temps
+                        moves_left = 0;
+                        break;
+                    }
                 }
             }
             int ch = _getch(); // lire le caractère saisi
@@ -189,7 +198,7 @@ void game_run(int reprendre) // Démarre le jeu, reprendre: 0=nouvelle partie, 1
                     moves_left = contrats[level].maxMoves;
                     for(int i=0;i<5;i++) progress[i]=0;
                     // réinitialiser le minuteur du niveau pour éviter qu'il n'expire immédiatement
-                    start = time(NULL);
+                    debut = time(NULL);
                 }
             }
         }
