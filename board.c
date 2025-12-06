@@ -24,7 +24,7 @@ void init_tableau(Tableau *b) // Initialise le plateau avec des caractères alé
     do {
         for(int r=0;r<LIGNES;r++){
             for(int c=0;c<COLONNES;c++){
-                b->cellules[r][c] = element_alea();
+                b->cellules[r][c] = element_alea(); // Remplir chaque cellule avec un caractère aléatoire
             }
         }
         tentatives++;
@@ -44,7 +44,7 @@ void init_tableau(Tableau *b) // Initialise le plateau avec des caractères alé
                 // triple vertical commençant ici
                 if(r <= LIGNES-3){
                     if(b->cellules[r][c] != '\0' && b->cellules[r][c] == b->cellules[r+1][c] && b->cellules[r][c] == b->cellules[r+2][c]){
-                        b->cellules[r][c] = element_alea();
+                        b->cellules[r][c] = element_alea(); // rééchantillonner
                     }
                 }
             }
@@ -78,21 +78,21 @@ void Tableau_print(Tableau *b, int cursor_r, int cursor_c, int selected_r, int s
                 else if(r==cursor_r && c==cursor_c) { putchar('['); putchar(ch); putchar(']'); }
                 else putchar(ch);
             }
-            putchar('\n');
+            putchar('\n'); // nouvelle ligne
         }
-        fflush(stdout);
+        fflush(stdout); // forcer la sortie
         return;
     } else {
-        int largeur = csbi.dwSize.X;
-        int hauteur = csbi.dwSize.Y;
+        int largeur = csbi.dwSize.X; // largeur du tampon
+        int hauteur = csbi.dwSize.Y; // hauteur du tampon
         if(largeur < COLONNES*2 || hauteur < LIGNES+6){
             //repli : retour à un affichage ASCII simple
-            for(int r=0;r<LIGNES;r++){
-                for(int c=0;c<COLONNES;c++){
-                    char ch = b->cellules[r][c]; if(ch=='\0') ch=' ';
-                    if(r==selected_r && c==selected_c) putchar(tolower(ch));
-                    else if(r==cursor_r && c==cursor_c) { putchar('['); putchar(ch); putchar(']'); }
-                    else putchar(ch);
+            for(int r=0;r<LIGNES;r++){ // pour chaque ligne
+                for(int c=0;c<COLONNES;c++){ // pour chaque colonne
+                    char ch = b->cellules[r][c]; if(ch=='\0') ch=' '; // cellule vide
+                    if(r==selected_r && c==selected_c) putchar(tolower(ch)); // sélectionné
+                    else if(r==cursor_r && c==cursor_c) { putchar('['); putchar(ch); putchar(']'); } // curseur
+                    else putchar(ch); // normal
                 }
                 putchar('\n');
             }
@@ -136,11 +136,11 @@ void Tableau_print(Tableau *b, int cursor_r, int cursor_c, int selected_r, int s
 void Tableau_appliquer_gravité(Tableau *b) // Applique la gravité pour faire tomber les caractères
 {
     for(int c=0;c<COLONNES;c++){ // pour chaque colonne
-        int ecrire = LIGNES-1;
-        for(int r=LIGNES-1;r>=0;r--){
-            if(b->cellules[r][c] != '\0'){
-                b->cellules[ecrire][c] = b->cellules[r][c];
-                ecrire--;
+        int ecrire = LIGNES-1; // position d'écriture
+        for(int r=LIGNES-1;r>=0;r--){ // parcourir de bas en haut
+            if(b->cellules[r][c] != '\0'){ // si la cellule n'est pas vide
+                b->cellules[ecrire][c] = b->cellules[r][c]; // déplacer l'élément vers la position d'écriture
+                ecrire--; // déplacer la position d'écriture vers le haut
             }
         }
         for(int r=ecrire;r>=0;r--) b->cellules[r][c] = element_alea();
