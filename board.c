@@ -6,12 +6,12 @@
 #include <ctype.h>
 #include "console.h"
 
-static const char ITEMS[] = {'S','F','P','O','M'};
-static const int NITEMS = 5;
+static const char ITEMS[] = {'S','F','P','O','M'}; // S=Sun, F=Fire, P=Plant, O=Ocean, M=Mountain
+static const int NITEMS = 5; // Nombre d'items différents
 
-static char rand_item()
+static char rand_item()    // Génère un caractère aléatoire parmi les ITEMS
 {
-    return ITEMS[rand() % NITEMS];
+    return ITEMS[rand() % NITEMS]; // Retourne un caractère aléatoire parmi les ITEMS
 }
 
 void board_init(Board *b)
@@ -20,7 +20,7 @@ void board_init(Board *b)
     // Génère des plateaux jusqu'à MAX_ATTEMPTS afin d'obtenir un plateau sans correspondances
     // évite une boucle  qui rééchantillonne des cellules aléatoires
     const int MAX_ATTEMPTS = 1000;
-    int attempts = 0;
+    int attempts = 0; // Compteur de tentatives
     do {
         for(int r=0;r<ROWS;r++){
             for(int c=0;c<COLS;c++){
