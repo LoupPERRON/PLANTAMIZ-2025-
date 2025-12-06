@@ -19,12 +19,12 @@ static int menu() // Affiche le menu et retourne le choix de l'utilisateur
     }
 }
 
-int main()
+int main() // point d'entrée principal du programme
 {
-    int choice = menu(); // afficher le menu et obtenir le choix de l'utilisateur
-    if(choice==1){
+    int choix = menu(); // afficher le menu et obtenir le choix de l'utilisateur
+    if(choix==1){
         game_run(0); // nouvelle partie
-    } else if(choice==2){
+    } else if(choix==2){
         game_run(1); // reprendre partie
     } else {
         printf("Au revoir.\n"); // quitter
