@@ -1,6 +1,6 @@
-#include <stdio.h>
-#include <string.h>
-#include "game.h"
+#include <stdio.h> // Pour les fonctions d'entrée/sortie standard
+#include <string.h> // Pour les fonctions de manipulation de chaînes
+#include "game.h" // Inclure le fichier d'en-tête pour les fonctions de jeu
 
 static int menu() // Affiche le menu et retourne le choix de l'utilisateur
 {
