@@ -29,7 +29,7 @@ void init_tableau(Tableau *b) // Initialise le plateau avec des caractères alé
         }
         tentatives++;
         if(tentatives >= TENTATIVES_MAX) break;
-    } while(!Tableau_no_initial_matches(b));
+    } while(!Tableau_pas_de_correspondances_initiales(b));
 
     if(tentatives >= TENTATIVES_MAX){
         //Repli : si aucun plateau n'a été trouvé,casser les triples en rééchantillonnant les cellules .
@@ -52,7 +52,7 @@ void init_tableau(Tableau *b) // Initialise le plateau avec des caractères alé
     }
 }
 
-static int couleur_car(char ch)
+static int couleur_car(char ch) // Retourne la couleur associée à un caractère
 {
     switch(ch){
         case 'S': return 14; // jaune
@@ -133,7 +133,7 @@ void Tableau_print(Tableau *b, int cursor_r, int cursor_c, int selected_r, int s
     fflush(stdout);
 }
 
-void Tableau_apply_gravity(Tableau *b) // Applique la gravité pour faire tomber les caractères
+void Tableau_appliquer_gravité(Tableau *b) // Applique la gravité pour faire tomber les caractères
 {
     for(int c=0;c<COLONNES;c++){ // pour chaque colonne
         int ecrire = LIGNES-1;
@@ -161,7 +161,7 @@ void Tableau_swap(Tableau *b, int r1,int c1,int r2,int c2) // Échange deux cell
 
 //Trouve les séquences horizontales et verticales >=3,rectangles et formes en H
 //Marque les cellules à supprimer et met à jour la grille , renvoie true si une suppression a eu lieu et incrémente les points
-bool Tableau_find_and_remove_matches(Tableau *b, int *points)
+bool Tableau_trouver_et_supprimer_les_correspondances(Tableau *b, int *points)
 {
     bool any_global = false;
     int points_accum = 0;
@@ -259,7 +259,7 @@ bool Tableau_find_and_remove_matches(Tableau *b, int *points)
         any_global = true; // au moins une suppression globale a eu lieu
         //appliquer les suppressions
         for(int r=0;r<LIGNES;r++) for(int c=0;c<COLONNES;c++) if(remove[r][c]) b->cellules[r][c]='\0';
-        Tableau_apply_gravity(b);
+        Tableau_appliquer_gravité(b);
         //continuer  boucle pour détecter cascades
     }
 
@@ -267,7 +267,7 @@ bool Tableau_find_and_remove_matches(Tableau *b, int *points)
     return any_global;
 }
 
-bool Tableau_no_initial_matches(Tableau *b)
+bool Tableau_pas_de_correspondances_initiales(Tableau *b)
 {
     //vérifier séquences horizontales/verticales >= 3
     for(int r=0;r<LIGNES;r++){

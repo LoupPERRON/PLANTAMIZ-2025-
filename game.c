@@ -18,7 +18,7 @@ static Contrat contrats[3]; // Contrats pour les 3 niveaux
 
 static void init_contrats() // Initialise les contrats pour chaque niveau
 {
-    // Level 1: 10 S, 10 F, 10 P, 10 O et 10 M en 30 coups avec 3 minutes max
+    // niveau 1: 10 S, 10 F, 10 P, 10 O et 10 M en 30 coups avec 3 minutes max
     memset(&contrats,0,sizeof(contrats));
     contrats[0].targets[0] = 10;   // S
     contrats[0].targets[1] = 10;  // F
@@ -28,7 +28,7 @@ static void init_contrats() // Initialise les contrats pour chaque niveau
     contrats[0].maxMoves = 30;
     contrats[0].tempsSecondes = 180;
 
-    // Level 2: 15 S, 30 P, 20 O et 15 M en 40 mouvements avec 4 minutes max
+    // niveau 2: 15 S, 30 P, 20 O et 15 M en 40 mouvements avec 4 minutes max
     contrats[1].targets[0] = 15; // S
     contrats[1].targets[1] = 0; // F
     contrats[1].targets[2] = 30; // P
@@ -37,7 +37,7 @@ static void init_contrats() // Initialise les contrats pour chaque niveau
     contrats[1].maxMoves = 40;
     contrats[1].tempsSecondes = 240;
 
-    // Level 3: 20 S, 20 F, 20 P, 20 O et 20 M en 50 mouvements avec 5 minutes max
+    // niveau 3: 20 S, 20 F, 20 P, 20 O et 20 M en 50 mouvements avec 5 minutes max
     contrats[2].targets[0] = 20; // S
     contrats[2].targets[1] = 20; // F
     contrats[2].targets[2] = 20; // P
@@ -47,7 +47,7 @@ static void init_contrats() // Initialise les contrats pour chaque niveau
     contrats[2].tempsSecondes = 300; // temps en secondes
 }
 
-static void sauvegarder(const char *nom,int nouveau_niveau) // Sauvegarde la progression du joueur dans un fichier
+static void sauvegarder(const char *nom,int nouveau_niveau) // Sauvegarde la progresion du joueur dans un fichier
 {
     FILE *f = fopen("savegame.txt","w"); // Ouvre le fichier en écriture
     if(!f) return; // Si l'ouverture échoue, retourne
@@ -55,7 +55,7 @@ static void sauvegarder(const char *nom,int nouveau_niveau) // Sauvegarde la pro
     fclose(f); // Ferme le fichier
 }
 
-static int charger(const char *nom) // Charge la progression du joueur depuis un fichier
+static int charger(const char *nom) // Charge la progresion du joueur depuis un fichier
 {
     FILE *f = fopen("savegame.txt","r"); // Ouvre le fichier en lecture
     if(!f) return 0; // Si l'ouverture échoue, retourne 0
@@ -67,13 +67,13 @@ static int charger(const char *nom) // Charge la progression du joueur depuis un
     return 0; // Si le nom n'est pas trouvé, retourne 0
 }
 
-static void print_status(int level,int moves_left,int vies,int points, int progress[5], Contrat *c){ // Affiche le statut actuel du jeu
+static void print_status(int niveau,int moves_left,int vies,int points, int progres[5], Contrat *c){ // Affiche le statut actuel du jeu
     gotoligcol(0,0); // Déplace le curseur en haut à gauche
-    printf("Niveau %d   Coups restants: %d   Vies: %d   Points: %d\n", level+1,moves_left,vies,points); // Affiche le niveau, les mouvements restants, les vies et les points
+    printf("Niveau %d   Coups restants: %d   Vies: %d   Points: %d\n", niveau+1,moves_left,vies,points); // Affiche le niveau, les mouvements restants, les vies et les points
     printf("Contrat: S:%d F:%d P:%d O:%d M:%d\n", // Affiche les objectifs du contrat
            c->targets[0], c->targets[1], c->targets[2], c->targets[3], c->targets[4]); // Objectifs
-    printf("Progres: S:%d F:%d P:%d O:%d M:%d\n", // Affiche la progression actuelle
-           progress[0],progress[1],progress[2],progress[3],progress[4]); // Progression
+    printf("Progres: S:%d F:%d P:%d O:%d M:%d\n", // Affiche la progresion actuelle
+           progres[0],progres[1],progres[2],progres[3],progres[4]); // progresion
 }
 
 void game_run(int reprendre) // Démarre le jeu, reprendre: 0=nouvelle partie, 1=reprise depuis la sauvegarde
@@ -85,8 +85,8 @@ void game_run(int reprendre) // Démarre le jeu, reprendre: 0=nouvelle partie, 1
     if(!fgets(joueur,sizeof(joueur),stdin)) strcpy(joueur,"joueur\n"); // lire le nom du joueur
     // supprimer le retour à la ligne
     joueur[strcspn(joueur,"\r\n")] = '\0'; 
-    int resume_level = charger(joueur); // Charger la progression du joueur
-    if(!reprendre) resume_level = 0; // Si la reprise n'est pas autorisée, commencer une nouvelle partie
+    int reprendre_niveau = charger(joueur); // Charger la progresion du joueur
+    if(!reprendre) reprendre_niveau = 0; // Si la reprise n'est pas autorisée, commencer une nouvelle partie
 
     
  // variables de jeu
@@ -94,25 +94,25 @@ void game_run(int reprendre) // Démarre le jeu, reprendre: 0=nouvelle partie, 1
     int cursor_r=0,cursor_c=0;
     int selected_r=-1, selected_c=-1;
     int vies=5;
-    int level = resume_level;
-    if(level<0) level=0;
-    if(level>2) level=2;
+    int niveau = reprendre_niveau;
+    if(niveau<0) niveau=0;
+    if(niveau>2) niveau=2;
     int points=0;
 
-    for(; level<3; level++){ // boucle à travers les niveaux
+    for(; niveau<3; niveau++){ // boucle à travers les niveaux
         init_tableau(&b);
-        int moves_left = contrats[level].maxMoves;
-        int progress[5] = {0,0,0,0,0};
+        int moves_left = contrats[niveau].maxMoves;
+        int progres[5] = {0,0,0,0,0};
         time_t debut = time(NULL);
         (void)0;
 
         while(1){ // boucle principale du niveau
             effacer_ecran();
-            print_status(level,moves_left,vies,points,progress,&contrats[level]);
+            print_status(niveau,moves_left,vies,points,progres,&contrats[niveau]);
             Tableau_print(&b,cursor_r,cursor_c,selected_r,selected_c);
             printf("Controls: z q s d pour bouger, ESPACE pour choisir/echanger, p pour quitter\n");
             {
-                int restant = contrats[level].tempsSecondes - (int)(time(NULL)-debut);
+                int restant = contrats[niveau].tempsSecondes - (int)(time(NULL)-debut);
                 if(restant < 0) restant = 0;
                 printf("Temps restants: %d secondes\n", restant );
             }
@@ -124,13 +124,13 @@ void game_run(int reprendre) // Démarre le jeu, reprendre: 0=nouvelle partie, 1
                 while(!kbhit()){
                     Sleep(80);
                     int ecoule = (int)(time(NULL)-debut);
-                    int restant = contrats[level].tempsSecondes - ecoule;
+                    int restant = contrats[niveau].tempsSecondes - ecoule;
                     if(restant < 0) restant = 0;
                     gotoligcol(ligne_temps,0);
                     // réécrire la ligne du temps (sans saut de ligne) et forcer flush
                     printf("Temps restants: %d secondes   ", restant);
                     fflush(stdout);
-                    if(ecoule >= contrats[level].tempsSecondes){
+                    if(ecoule >= contrats[niveau].tempsSecondes){
                         // fin du temps
                         moves_left = 0;
                         break;
@@ -139,8 +139,8 @@ void game_run(int reprendre) // Démarre le jeu, reprendre: 0=nouvelle partie, 1
             }
             int ch = _getch(); // lire le caractère saisi
             if(ch== 'p'){
-                printf("Quitter et sauvegarder progression.\n");
-                sauvegarder(joueur, level);
+                printf("Quitter et sauvegarder progresion.\n");
+                sauvegarder(joueur, niveau);
                 return;
             }
             if(ch== 'z' && cursor_r>0) cursor_r--; // déplacer le curseur vers le haut
@@ -157,14 +157,14 @@ void game_run(int reprendre) // Démarre le jeu, reprendre: 0=nouvelle partie, 1
                         int before[5]; for(int i=0;i<5;i++) before[i]=Tableau_count_char(&b, "SFPOM"[i]);
                         Tableau_swap(&b, selected_r,selected_c,cursor_r,cursor_c);
                         int gained=0;
-                        if(!Tableau_find_and_remove_matches(&b,&gained)){
+                        if(!Tableau_trouver_et_supprimer_les_correspondances(&b,&gained)){
                             Tableau_swap(&b, selected_r,selected_c,cursor_r,cursor_c);
                         } else {
                             // calculer les quantités supprimées
                             int after[5]; for(int i=0;i<5;i++) after[i]=Tableau_count_char(&b, "SFPOM"[i]);
                             for(int i=0;i<5;i++){
                                 int removed = before[i]-after[i];
-                                if(removed>0){ progress[i]+=removed; }
+                                if(removed>0){ progres[i]+=removed; }
                             }
                             points += gained;
                             moves_left--;
@@ -176,12 +176,12 @@ void game_run(int reprendre) // Démarre le jeu, reprendre: 0=nouvelle partie, 1
 
             // check completion
             int ok=1;
-            for(int i=0;i<5;i++) if(progress[i] < contrats[level].targets[i]) ok=0;
+            for(int i=0;i<5;i++) if(progres[i] < contrats[niveau].targets[i]) ok=0;
             if(ok){
-                printf("Niveau %d terminé ! Appuyez sur une touche pour continuer.\n", level+1);
+                printf("Niveau %d terminé ! Appuyez sur une touche pour continuer.\n", niveau+1);
                 _getch();
                 //  vérification de la réussite du contrat
-                sauvegarder(joueur, level+1);
+                sauvegarder(joueur, niveau+1);
                 break; //allez vers le prochain niveau
             }
 
@@ -195,8 +195,8 @@ void game_run(int reprendre) // Démarre le jeu, reprendre: 0=nouvelle partie, 1
                     printf("Niveau impossible. Vies restantes : %d. Appuyez sur une touche pour réessayer.\n", vies);
                     _getch();
                     init_tableau(&b);
-                    moves_left = contrats[level].maxMoves;
-                    for(int i=0;i<5;i++) progress[i]=0;
+                    moves_left = contrats[niveau].maxMoves;
+                    for(int i=0;i<5;i++) progres[i]=0;
                     // réinitialiser le minuteur du niveau pour éviter qu'il n'expire immédiatement
                     debut = time(NULL);
                 }
