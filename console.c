@@ -17,5 +17,5 @@ void Color(int couleurDuTexte,int couleurDeFond) // Change la couleur du texte e
 
 void clear_screen() // Efface l'écran du console
 {
-    system("cls"); // Utiliser la commande système 'cls' pour effacer l'écran de la console
+    system("cls"); // Utiliser la commande système 'cls' pour effacer l'écran
 }
