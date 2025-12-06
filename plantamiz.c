@@ -1,284 +1,111 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+#include <conio.h>
 #include "plantamitz.h"
+#include "tableau.h"
+#include "input.h"
+#include "afficher.h"
+#include "console.h"
 
-#ifdef _WIN32
-    #include <windows.h>
-#endif
+void lancerJeu() {
+    afficherMenu();
+    _getch();
 
-/***************** Couleurs console (Windows) *****************/
+    GameState etat;
+    etat.vies = 5; // [cite: 73]
+    etat.niveau = 1;
 
-#ifdef _WIN32
-void Color(int couleurDuTexte, int couleurDeFond)
-{
-    HANDLE H = GetStdHandle(STD_OUTPUT_HANDLE);
-    SetConsoleTextAttribute(H, couleurDeFond * 16 + couleurDuTexte);
-}
-#else
-// Version "vide" pour non-Windows (macro si besoin)
-void Color(int couleurDuTexte, int couleurDeFond)
-{
-    (void)couleurDuTexte;
-    (void)couleurDeFond;
-}
-#endif
+    while (etat.vies > 0 && etat.niveau <= 3) {
+        // Configuration du niveau
+        etat.score = 0;
+        etat.coupsRestants = 30 + (etat.niveau * 5); // Difficulté croissante
+        etat.objectifScore = 50 * etat.niveau;
+        
+        jouerNiveau(&etat);
 
-// renvoie le code couleur pour un item donné
-static int couleurPourItem(char item)
-{
-#ifdef _WIN32
-    switch (item)
-    {
-        case ITEM_SOLEIL:    return 14; // jaune
-        case ITEM_FRAISE:    return 12; // rouge
-        case ITEM_POMME:     return 10; // vert
-        case ITEM_OIGNON:    return 11; // turquoise
-        case ITEM_MANDARINE: return 13; // violet/orange-ish
-        case VIDE:           return 7;  // gris clair
-        default:             return 15; // blanc
-    }
-#else
-    (void)item;
-    return 0;
-#endif
-}
-
-/***************** Fonctions aléatoires & items *****************/
-
-void initialiserAleatoire(void)
-{
-    srand((unsigned int)time(NULL));
-}
-
-char genererItemAleatoire(void)
-{
-    char items[NB_TYPES_ITEM] = {
-        ITEM_SOLEIL,
-        ITEM_FRAISE,
-        ITEM_POMME,
-        ITEM_OIGNON,
-        ITEM_MANDARINE
-    };
-
-    int index = rand() % NB_TYPES_ITEM;
-    return items[index];
-}
-
-/***************** Gestion du plateau *****************/
-
-void initialiserGrille(char grille[NB_LIGNES][NB_COLONNES])
-{
-    int i, j;
-
-    for (i = 0; i < NB_LIGNES; ++i)
-    {
-        for (j = 0; j < NB_COLONNES; ++j)
-        {
-            grille[i][j] = genererItemAleatoire();
+        if (etat.score >= etat.objectifScore) {
+            afficherFin(1, etat.score);
+            etat.niveau++;
+            etat.vies = 5; // Reset vies si niveau réussi [cite: 75]
+        } else {
+            afficherFin(0, etat.score);
+            etat.vies--;
         }
-    }
-
-    // On stabilise : on enlève les groupes initiaux éventuels
-    stabiliserGrille(grille);
-}
-
-void afficherGrille(const char grille[NB_LIGNES][NB_COLONNES])
-{
-    int i, j;
-
-    for (i = 0; i < NB_LIGNES; ++i)
-    {
-        for (j = 0; j < NB_COLONNES; ++j)
-        {
-            int couleur = couleurPourItem(grille[i][j]);
-            Color(couleur, 0);
-            printf("%c", grille[i][j]);
-        }
-        Color(15, 0); // reset
-        printf("\n");
+        _getch();
     }
 }
 
-/***************** Détection des groupes simples *****************/
+void jouerNiveau(GameState *etat) {
+    Plateau plateau;
+    initialiserPlateau(&plateau); // [cite: 27, 28]
 
-int detecterGroupesSimples(const char grille[NB_LIGNES][NB_COLONNES],
-                           int marque[NB_LIGNES][NB_COLONNES])
-{
-    int i, j;
-    int nbMarques = 0;
+    int curseurL = LIGNES / 2;
+    int curseurC = COLONNES / 2;
+    int selectionActive = 0;
+    int selL = -1, selC = -1;
+    int jeuEnCours = 1;
 
-    // Réinitialisation de la matrice de marquage
-    for (i = 0; i < NB_LIGNES; ++i)
-    {
-        for (j = 0; j < NB_COLONNES; ++j)
-        {
-            marque[i][j] = 0;
-        }
-    }
+    cacherCurseur();
 
-    // --- Parcours horizontal ---
-    for (i = 0; i < NB_LIGNES; ++i)
-    {
-        j = 0;
-        while (j < NB_COLONNES)
-        {
-            char courant = grille[i][j];
-            if (courant == VIDE)
-            {
-                ++j;
-                continue;
-            }
+    while (jeuEnCours && etat->coupsRestants > 0 && etat->score < etat->objectifScore) {
+        afficherJeu(&plateau, etat, curseurL, curseurC);
+        
+        Action act = recupererAction();
 
-            int debut = j;
-            int longueur = 1;
-            ++j;
-
-            while (j < NB_COLONNES && grille[i][j] == courant)
-            {
-                ++longueur;
-                ++j;
-            }
-
-            if (longueur >= 3)
-            {
-                int k;
-                for (k = debut; k < debut + longueur; ++k)
-                {
-                    if (marque[i][k] == 0)
-                    {
-                        marque[i][k] = 1;
-                        ++nbMarques;
+        switch (act) {
+            case HAUT:   if (curseurL > 0) curseurL--; break;
+            case BAS:    if (curseurL < LIGNES - 1) curseurL++; break;
+            case GAUCHE: if (curseurC > 0) curseurC--; break;
+            case DROITE: if (curseurC < COLONNES - 1) curseurC++; break;
+            
+            case SELECTION: // 
+                if (!selectionActive) {
+                    // Première sélection
+                    selectionActive = 1;
+                    selL = curseurL;
+                    selC = curseurC;
+                    plateau.grille[selL][selC].estSelectionne = 1; // [cite: 43]
+                } else {
+                    // Tentative de permutation
+                    // Vérifier contiguïté (Haut, Bas, Gauche, Droite)
+                    if (((curseurL == selL + 1 || curseurL == selL - 1) && curseurC == selC) ||
+                        ((curseurC == selC + 1 || curseurC == selC - 1) && curseurL == selL)) {
+                        
+                        permuterItems(&plateau, selL, selC, curseurL, curseurC); // [cite: 44]
+                        
+                        int points = 0;
+                        if (verifierMatchs(&plateau, &points)) {
+                            // Match valide : appliquer suppressions et gravité
+                            etat->score += points;
+                            do {
+                                // Boucle de stabilisation (réaction en chaîne) [cite: 33]
+                                afficherJeu(&plateau, etat, -1, -1); // Animation
+                                Sleep(300); // Pause visuelle
+                                appliquerGravite(&plateau);
+                                points = 0;
+                            } while (verifierMatchs(&plateau, &points));
+                            
+                            etat->coupsRestants--;
+                        } else {
+                            // Mouvement invalide : on remet en place (si règle stricte)
+                            // Le sujet dit : "Si la permutation ne forme aucun groupe... permuter de nouveau" [cite: 46]
+                            // Ici on accepte la permutation sans match mais ça coûte un coup ou non selon interprétation.
+                            // Dans CandyCrush classique, on annule. Le sujet dit [cite: 47] on peut permuter items isolés.
+                            // On décrémente donc le coup.
+                            etat->coupsRestants--;
+                        }
                     }
+                    
+                    // Reset sélection
+                    plateau.grille[selL][selC].estSelectionne = 0;
+                    selectionActive = 0;
                 }
-            }
+                break;
+
+            case QUITTER:
+                jeuEnCours = 0;
+                etat->vies = 0; // Force la sortie
+                break;
+            default: break;
         }
     }
-
-    // --- Parcours vertical ---
-    for (j = 0; j < NB_COLONNES; ++j)
-    {
-        i = 0;
-        while (i < NB_LIGNES)
-        {
-            char courant = grille[i][j];
-            if (courant == VIDE)
-            {
-                ++i;
-                continue;
-            }
-
-            int debut = i;
-            int longueur = 1;
-            ++i;
-
-            while (i < NB_LIGNES && grille[i][j] == courant)
-            {
-                ++longueur;
-                ++i;
-            }
-
-            if (longueur >= 3)
-            {
-                int k;
-                for (k = debut; k < debut + longueur; ++k)
-                {
-                    if (marque[k][j] == 0)
-                    {
-                        marque[k][j] = 1;
-                        ++nbMarques;
-                    }
-                }
-            }
-        }
-    }
-
-    return nbMarques;
-}
-
-/***************** Suppression & gravité *****************/
-
-void supprimerGroupes(char grille[NB_LIGNES][NB_COLONNES],
-                      int marque[NB_LIGNES][NB_COLONNES])
-{
-    int i, j;
-
-    for (i = 0; i < NB_LIGNES; ++i)
-    {
-        for (j = 0; j < NB_COLONNES; ++j)
-        {
-            if (marque[i][j] == 1)
-            {
-                grille[i][j] = VIDE;
-            }
-        }
-    }
-}
-
-void appliquerGravite(char grille[NB_LIGNES][NB_COLONNES])
-{
-    int col, lig;
-
-    for (col = 0; col < NB_COLONNES; ++col)
-    {
-        int ligneEcriture = NB_LIGNES - 1; // on remplit depuis le bas
-
-        for (lig = NB_LIGNES - 1; lig >= 0; --lig)
-        {
-            if (grille[lig][col] != VIDE)
-            {
-                grille[ligneEcriture][col] = grille[lig][col];
-
-                if (ligneEcriture != lig)
-                {
-                    grille[lig][col] = VIDE;
-                }
-
-                --ligneEcriture;
-            }
-        }
-
-        // Les cases restantes au-dessus sont VIDES
-        for (lig = ligneEcriture; lig >= 0; --lig)
-        {
-            grille[lig][col] = VIDE;
-        }
-    }
-}
-
-void remplirAvecNouveauxItems(char grille[NB_LIGNES][NB_COLONNES])
-{
-    int lig, col;
-
-    for (lig = 0; lig < NB_LIGNES; ++lig)
-    {
-        for (col = 0; col < NB_COLONNES; ++col)
-        {
-            if (grille[lig][col] == VIDE)
-            {
-                grille[lig][col] = genererItemAleatoire();
-            }
-        }
-    }
-}
-
-/***************** Stabilisation *****************/
-
-void stabiliserGrille(char grille[NB_LIGNES][NB_COLONNES])
-{
-    int marque[NB_LIGNES][NB_COLONNES];
-    int nbASupprimer;
-
-    do
-    {
-        nbASupprimer = detecterGroupesSimples(grille, marque);
-
-        if (nbASupprimer > 0)
-        {
-            supprimerGroupes(grille, marque);
-            appliquerGravite(grille);
-            remplirAvecNouveauxItems(grille);
-        }
-
-    } while (nbASupprimer > 0);
 }
