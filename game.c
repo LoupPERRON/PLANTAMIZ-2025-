@@ -178,7 +178,7 @@ void game_run(int reprendre) // Démarre le jeu, reprendre: 0=nouvelle partie, 1
             int ok=1;
             for(int i=0;i<5;i++) if(progres[i] < contrats[niveau].targets[i]) ok=0;
             if(ok){
-                printf("Niveau %d terminé ! Appuyez sur une touche pour continuer.\n", niveau+1); // niveau terminé
+                printf("Niveau %d termine ! Appuyez sur une touche pour continuer.\n", niveau+1); // niveau terminé
                 _getch();
                 //  vérification de la réussite du contrat
                 sauvegarder(joueur, niveau+1);
@@ -188,11 +188,11 @@ void game_run(int reprendre) // Démarre le jeu, reprendre: 0=nouvelle partie, 1
             if(coups_restants<=0){ // vérifier l'échec du niveau
                 vies--; // perdre une vie
                 if(vies<=0){ // vérifier la fin du jeu
-                    printf("Fin de la partie. Vous avez marqué %d points.\n", points);
+                    printf("Fin de la partie. Vous avez marque %d points.\n", points);
                     sauvegarder(joueur, 0);
                     return;
                 } else {
-                    printf("Niveau impossible. Vies restantes : %d. Appuyez sur une touche pour réessayer.\n", vies);
+                    printf("Niveau impossible. Vies restantes : %d. Appuyez sur une touche pour reessayer.\n", vies);
                     _getch();
                     init_tableau(&b);
                     coups_restants = contrats[niveau].maxMoves;
@@ -204,6 +204,6 @@ void game_run(int reprendre) // Démarre le jeu, reprendre: 0=nouvelle partie, 1
         }
     }
 
-    printf("Bravo! Vous avez terminé les 3 tableaux. Points totaux: %d\n", points);
+    printf("Bravo! Vous avez termine les 3 tableaux. Points totaux: %d\n", points);
     sauvegarder(joueur, 3);
 }
