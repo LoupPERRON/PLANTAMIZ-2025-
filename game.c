@@ -7,7 +7,7 @@
 #include "board.h"
 #include "console.h"
 
-// Contract: targets for S,F,P,O,M in that order, moves allowed, time in seconds
+// structure du jeu permettant de définir les contrats pour chaque niveau
 typedef struct {
     int targets[5];
     int maxMoves;
