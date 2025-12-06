@@ -198,3 +198,4 @@ void game_run(int allow_resume)
     printf("Bravo! Vous avez terminé les 3 tableaux. Points totaux: %d\n", points);
     save_progress(player, 3);
 }
+// commentaire
