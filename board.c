@@ -38,7 +38,7 @@ void init_tableau(Tableau *b) // Initialise le plateau avec des caractères alé
                 // triple horizontal commençant ici
                 if(c <= COLONNES-3){
                     if(b->cellules[r][c] != '\0' && b->cellules[r][c] == b->cellules[r][c+1] && b->cellules[r][c] == b->cellules[r][c+2]){
-                        b->cellules[r][c] = element_alea();
+                        b->cellules[r][c] = element_alea(); // rééchantillonner
                     }
                 }
                 // triple vertical commençant ici
@@ -118,13 +118,13 @@ void Tableau_print(Tableau *b, int curseur_l, int curseur_c, int choisi_l, int c
                 Couleur(15,0);
             } else if(r==curseur_l && c==curseur_c){
                 //curseur : arrière-plan inversé
-                Couleur(0, 14);
-                putchar(ch);
-                Couleur(15,0);
+                Couleur(0, 14); // fond jaune
+                putchar(ch); // afficher le caractère
+                Couleur(15,0); // réinitialiser les couleurs
             } else {
-                Couleur(col,0);
-                putchar(ch);
-                Couleur(15,0);
+                Couleur(col,0); // couleur normale
+                putchar(ch); // afficher le caractère
+                Couleur(15,0); // réinitialiser les couleurs
             }
         }
     }
@@ -199,23 +199,23 @@ bool Tableau_trouver_et_supprimer_les_correspondances(Tableau *b, int *points)
         }
 
         // vertical
-        for(int c=0;c<COLONNES;c++){
+        for(int c=0;c<COLONNES;c++){ // pour chaque colonne
             int r=0;
-            while(r<LIGNES){
+            while(r<LIGNES){ // pour chaque ligne
                 char base = b->cellules[r][c];
                 int i=r+1;
                 while(i<LIGNES && base!='\0' && b->cellules[i][c]==base) i++;
                 int len = i-r;
-                if(base!='\0' && len>=3){
+                if(base!='\0' && len>=3){ // séquence trouvée
                     any=true;
                     for(int k=r;k<i;k++) remove[k][c]=true;
                     if(len==4) points_accum += 4;
-                    else if(len==6){
+                    else if(len==6){ // retirer tous les identiques
                         char ch = base;
                         int total = Tableau_count_char(b,ch);
                         points_accum += total;
                         for(int rr=0;rr<LIGNES;rr++) for(int cc=0;cc<COLONNES;cc++) if(b->cellules[rr][cc]==ch) remove[rr][cc]=true;
-                    } else {
+                    } else { 
                         points_accum += len;
                     }
                 }
@@ -224,15 +224,15 @@ bool Tableau_trouver_et_supprimer_les_correspondances(Tableau *b, int *points)
         }
 
         //détection de rectangles (brute-force) d'au moins 2x2
-        for(int r=0;r<LIGNES;r++){
-            for(int c=0;c<COLONNES;c++){
+        for(int r=0;r<LIGNES;r++){ // pour chaque ligne
+            for(int c=0;c<COLONNES;c++){ // pour chaque cellule
                 char ch = b->cellules[r][c];
                 if(!ch) continue;
-                for(int h=2;r+h-1<LIGNES;h++){
-                    for(int w=2;c+w-1<COLONNES;w++){
+                for(int h=2;r+h-1<LIGNES;h++){ // hauteur du rectangle
+                    for(int w=2;c+w-1<COLONNES;w++){ // largeur du rectangle
                         bool ok=true;
                         for(int rr=r;rr<r+h && ok;rr++) for(int cc=c;cc<c+w;cc++) if(b->cellules[rr][cc]!=ch) {ok=false; break;}
-                        if(ok){
+                        if(ok){ // rectangle détecté
                             any=true;
                             for(int rr=r;rr<r+h;rr++) for(int cc=c;cc<c+w;cc++) remove[rr][cc]=true;
                             points_accum += 2*(h*w);
@@ -272,14 +272,14 @@ bool Tableau_pas_de_correspondances_initiales(Tableau *b)
     //vérifier séquences horizontales/verticales >= 3
     for(int r=0;r<LIGNES;r++){
         for(int c=0;c<COLONNES-2;c++){
-            char ch = b->cellules[r][c]; if(ch==0) continue;
-            if(b->cellules[r][c+1]==ch && b->cellules[r][c+2]==ch) return false;
+            char ch = b->cellules[r][c]; if(ch==0) continue; // cellule vide
+            if(b->cellules[r][c+1]==ch && b->cellules[r][c+2]==ch) return false; // correspondance trouvée
         }
     }
     for(int c=0;c<COLONNES;c++){
         for(int r=0;r<LIGNES-2;r++){
-            char ch = b->cellules[r][c]; if(ch==0) continue;
-            if(b->cellules[r+1][c]==ch && b->cellules[r+2][c]==ch) return false;
+            char ch = b->cellules[r][c]; if(ch==0) continue; // cellule vide
+            if(b->cellules[r+1][c]==ch && b->cellules[r+2][c]==ch) return false; // correspondance trouvée
         }
     }
     return true;

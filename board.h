@@ -13,6 +13,6 @@ void init_tableau(Tableau *b); // Initialise le plateau avec des caractères al�
 void Tableau_print(Tableau *b, int curseur_l, int curseur_c, int choisi_l, int choisi_c); // Affiche le plateau avec le curseur et la sélection
 void Tableau_appliquer_gravité(Tableau *b); // Applique la gravité pour faire tomber les caractères
 bool Tableau_trouver_et_supprimer_les_correspondances(Tableau *b, int *points); // Trouve et supprime les correspondances, retourne vrai si des correspondances ont été trouvées
-void Tableau_swap(Tableau *b, int r1,int c1,int r2,int c2); // Échange deux cellules du plateau
+void Tableau_swap(Tableau *b, int r1, int c1, int r2, int c2); // Échange deux cellules du plateau
 bool Tableau_pas_de_correspondances_initiales(Tableau *b); // Vérifie qu'il n'y a pas de correspondances initiales sur le plateau
-int Tableau_count_char(Tableau *b,char ch); // Compte le nombre d'occurrences d'un caractère donné sur le plateau
+int Tableau_count_char(Tableau *b, char ch); // Compte le nombre d'occurrences d'un caractère donné sur le plateau
