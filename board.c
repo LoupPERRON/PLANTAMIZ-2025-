@@ -6,7 +6,7 @@
 #include <ctype.h> // Pour la fonction tolower()
 #include "console.h" // Inclure le fichier d'en-tête pour les fonctions de manipulation de la console
 
-static const char ELEMENTS[] = {'S','F','P','O','M'}; // S=Soleil, F=Fraise, P=Plant, O=Ocean, M=Marron
+static const char ELEMENTS[] = {'S','F','P','O','M'}; // S=Soleil, F=Fraise, P=Pomme, O=Ognion, M=Mandarine
 static const int NELEMENTS = 5; // Nombre d'ELEMENTS différents
 
 static char element_alea()    // Génère un caractère aléatoire parmi les ELEMENTS
