@@ -1,22 +1,22 @@
-#include "board.h"
-#include <stdlib.h>
-#include <time.h>
-#include <string.h>
-#include <stdio.h>
-#include <ctype.h>
-#include "console.h"
+#include "board.h" // Inclure le fichier d'en-tête pour la structure Board et les prototypes de fonctions
+#include <stdlib.h> // Pour les fonctions rand() et srand()
+#include <time.h> // Pour la fonction time()
+#include <string.h> // Pour la fonction memset()
+#include <stdio.h> // Pour les fonctions d'entrée/sortie standard
+#include <ctype.h> // Pour la fonction tolower()
+#include "console.h" // Inclure le fichier d'en-tête pour les fonctions de manipulation de la console
 
-static const char ITEMS[] = {'S','F','P','O','M'}; // S=Sun, F=Fire, P=Plant, O=Ocean, M=Mountain
+static const char ITEMS[] = {'S','F','P','O','M'}; // S=Soleil, F=Fraise, P=Plant, O=Ocean, M=Mountain
 static const int NITEMS = 5; // Nombre d'items différents
 
-static char rand_item()    // Génère un caractère aléatoire parmi les ITEMS
+static char element_alea()    // Génère un caractère aléatoire parmi les ITEMS
 {
     return ITEMS[rand() % NITEMS]; // Retourne un caractère aléatoire parmi les ITEMS
 }
 
-void board_init(Board *b)
+void board_init(Board *b) // Initialise le plateau avec des caractères aléatoires sans correspondances initiales
 {
-    srand((unsigned)time(NULL));
+    srand((unsigned)time(NULL)); // Initialiser le générateur de nombres aléatoires avec le temps actuel
     // Génère des plateaux jusqu'à MAX_ATTEMPTS afin d'obtenir un plateau sans correspondances
     // évite une boucle  qui rééchantillonne des cellules aléatoires
     const int MAX_ATTEMPTS = 1000;
@@ -24,7 +24,7 @@ void board_init(Board *b)
     do {
         for(int r=0;r<ROWS;r++){
             for(int c=0;c<COLS;c++){
-                b->cells[r][c] = rand_item();
+                b->cells[r][c] = element_alea();
             }
         }
         attempts++;
@@ -38,13 +38,13 @@ void board_init(Board *b)
                 // triple horizontal commençant ici
                 if(c <= COLS-3){
                     if(b->cells[r][c] != '\0' && b->cells[r][c] == b->cells[r][c+1] && b->cells[r][c] == b->cells[r][c+2]){
-                        b->cells[r][c] = rand_item();
+                        b->cells[r][c] = element_alea();
                     }
                 }
                 // triple vertical commençant ici
                 if(r <= ROWS-3){
                     if(b->cells[r][c] != '\0' && b->cells[r][c] == b->cells[r+1][c] && b->cells[r][c] == b->cells[r+2][c]){
-                        b->cells[r][c] = rand_item();
+                        b->cells[r][c] = element_alea();
                     }
                 }
             }
@@ -133,9 +133,9 @@ void board_print(Board *b, int cursor_r, int cursor_c, int selected_r, int selec
     fflush(stdout);
 }
 
-void board_apply_gravity(Board *b)
+void board_apply_gravity(Board *b) // Applique la gravité pour faire tomber les caractères
 {
-    for(int c=0;c<COLS;c++){
+    for(int c=0;c<COLS;c++){ // pour chaque colonne
         int write = ROWS-1;
         for(int r=ROWS-1;r>=0;r--){
             if(b->cells[r][c] != '\0'){
@@ -143,16 +143,16 @@ void board_apply_gravity(Board *b)
                 write--;
             }
         }
-        for(int r=write;r>=0;r--) b->cells[r][c] = rand_item();
+        for(int r=write;r>=0;r--) b->cells[r][c] = element_alea();
     }
 }
 
-int board_count_char(Board *b,char ch)
+int board_count_char(Board *b,char ch) // Compte le nombre d'occurrences d'un caractère donné sur le plateau
 {
     int cnt=0; for(int r=0;r<ROWS;r++) for(int c=0;c<COLS;c++) if(b->cells[r][c]==ch) cnt++; return cnt;
 }
 
-void board_swap(Board *b, int r1,int c1,int r2,int c2)
+void board_swap(Board *b, int r1,int c1,int r2,int c2) // Échange deux cellules du plateau
 {
     char tmp = b->cells[r1][c1];
     b->cells[r1][c1] = b->cells[r2][c2];
