@@ -64,7 +64,7 @@ static int couleur_car(char ch) // Retourne la couleur associée à un caractèr
     }
 }
 
-void Tableau_print(Tableau *b, int cursor_r, int cursor_c, int selected_r, int selected_c)
+void Tableau_print(Tableau *b, int curseur_l, int curseur_c, int choisi_l, int choisi_c)
 {
     // Si le tampon de la console est trop petit pour positionner les caractères en sécurité, revenir à un affichage simple
     CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -74,8 +74,8 @@ void Tableau_print(Tableau *b, int cursor_r, int cursor_c, int selected_r, int s
         for(int r=0;r<LIGNES;r++){
             for(int c=0;c<COLONNES;c++){
                 char ch = b->cellules[r][c]; if(ch=='\0') ch=' ';
-                if(r==selected_r && c==selected_c) putchar(tolower(ch));
-                else if(r==cursor_r && c==cursor_c) { putchar('['); putchar(ch); putchar(']'); }
+                if(r==choisi_l && c==choisi_c) putchar(tolower(ch));
+                else if(r==curseur_l && c==curseur_c) { putchar('['); putchar(ch); putchar(']'); }
                 else putchar(ch);
             }
             putchar('\n'); // nouvelle ligne
@@ -90,8 +90,8 @@ void Tableau_print(Tableau *b, int cursor_r, int cursor_c, int selected_r, int s
             for(int r=0;r<LIGNES;r++){ // pour chaque ligne
                 for(int c=0;c<COLONNES;c++){ // pour chaque colonne
                     char ch = b->cellules[r][c]; if(ch=='\0') ch=' '; // cellule vide
-                    if(r==selected_r && c==selected_c) putchar(tolower(ch)); // sélectionné
-                    else if(r==cursor_r && c==cursor_c) { putchar('['); putchar(ch); putchar(']'); } // curseur
+                    if(r==choisi_l && c==choisi_c) putchar(tolower(ch)); // sélectionné
+                    else if(r==curseur_l && c==curseur_c) { putchar('['); putchar(ch); putchar(']'); } // curseur
                     else putchar(ch); // normal
                 }
                 putchar('\n');
@@ -111,12 +111,12 @@ void Tableau_print(Tableau *b, int cursor_r, int cursor_c, int selected_r, int s
             char ch = b->cellules[r][c];
             if(ch == '\0') ch = ' '; // cellule vide
             int col = couleur_car(ch);
-            if(r==selected_r && c==selected_c){ 
+            if(r==choisi_l && c==choisi_c){ 
                 //sélectionné : caractère en arrière-plan lumineux
                 Couleur(col, 4);
                 putchar(tolower(ch));
                 Couleur(15,0);
-            } else if(r==cursor_r && c==cursor_c){
+            } else if(r==curseur_l && c==curseur_c){
                 //curseur : arrière-plan inversé
                 Couleur(0, 14);
                 putchar(ch);

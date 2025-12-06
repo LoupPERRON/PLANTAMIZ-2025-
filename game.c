@@ -67,9 +67,9 @@ static int charger(const char *nom) // Charge la progresion du joueur depuis un 
     return 0; // Si le nom n'est pas trouvé, retourne 0
 }
 
-static void print_status(int niveau,int moves_left,int vies,int points, int progres[5], Contrat *c){ // Affiche le statut actuel du jeu
+static void afficher_statut(int niveau,int coups_restants,int vies,int points, int progres[5], Contrat *c){ // Affiche le statut actuel du jeu
     gotoligcol(0,0); // Déplace le curseur en haut à gauche
-    printf("Niveau %d   Coups restants: %d   Vies: %d   Points: %d\n", niveau+1,moves_left,vies,points); // Affiche le niveau, les mouvements restants, les vies et les points
+    printf("Niveau %d   Coups restants: %d   Vies: %d   Points: %d\n", niveau+1,coups_restants,vies,points); // Affiche le niveau, les mouvements restants, les vies et les points
     printf("Contrat: S:%d F:%d P:%d O:%d M:%d\n", // Affiche les objectifs du contrat
            c->targets[0], c->targets[1], c->targets[2], c->targets[3], c->targets[4]); // Objectifs
     printf("Progres: S:%d F:%d P:%d O:%d M:%d\n", // Affiche la progresion actuelle
@@ -91,8 +91,8 @@ void game_run(int reprendre) // Démarre le jeu, reprendre: 0=nouvelle partie, 1
     
  // variables de jeu
     Tableau b;
-    int cursor_r=0,cursor_c=0;
-    int selected_r=-1, selected_c=-1;
+    int curseur_l=0,curseur_c=0;
+    int choisi_l=-1, choisi_c=-1;
     int vies=5;
     int niveau = reprendre_niveau;
     if(niveau<0) niveau=0;
@@ -101,15 +101,15 @@ void game_run(int reprendre) // Démarre le jeu, reprendre: 0=nouvelle partie, 1
 
     for(; niveau<3; niveau++){ // boucle à travers les niveaux
         init_tableau(&b);
-        int moves_left = contrats[niveau].maxMoves;
+        int coups_restants = contrats[niveau].maxMoves;
         int progres[5] = {0,0,0,0,0};
         time_t debut = time(NULL);
         (void)0;
 
         while(1){ // boucle principale du niveau
             effacer_ecran();
-            print_status(niveau,moves_left,vies,points,progres,&contrats[niveau]);
-            Tableau_print(&b,cursor_r,cursor_c,selected_r,selected_c);
+            afficher_statut(niveau,coups_restants,vies,points,progres,&contrats[niveau]);
+            Tableau_print(&b,curseur_l,curseur_c,choisi_l,choisi_c);
             printf("Controls: z q s d pour bouger, ESPACE pour choisir/echanger, p pour quitter\n");
             {
                 int restant = contrats[niveau].tempsSecondes - (int)(time(NULL)-debut);
@@ -132,7 +132,7 @@ void game_run(int reprendre) // Démarre le jeu, reprendre: 0=nouvelle partie, 1
                     fflush(stdout);
                     if(ecoule >= contrats[niveau].tempsSecondes){
                         // fin du temps
-                        moves_left = 0;
+                        coups_restants = 0;
                         break;
                     }
                 }
@@ -143,22 +143,22 @@ void game_run(int reprendre) // Démarre le jeu, reprendre: 0=nouvelle partie, 1
                 sauvegarder(joueur, niveau);
                 return;
             }
-            if(ch== 'z' && cursor_r>0) cursor_r--; // déplacer le curseur vers le haut
-            else if(ch=='s' && cursor_r<LIGNES-1) cursor_r++; // déplacer le curseur vers le bas
-            else if(ch=='q' && cursor_c>0) cursor_c--; // déplacer le curseur vers la gauche
-            else if(ch=='d' && cursor_c<COLONNES-1) cursor_c++; // déplacer le curseur vers la droite
+            if(ch== 'z' && curseur_l>0) curseur_l--; // déplacer le curseur vers le haut
+            else if(ch=='s' && curseur_l<LIGNES-1) curseur_l++; // déplacer le curseur vers le bas
+            else if(ch=='q' && curseur_c>0) curseur_c--; // déplacer le curseur vers la gauche
+            else if(ch=='d' && curseur_c<COLONNES-1) curseur_c++; // déplacer le curseur vers la droite
             else if(ch==' '){ // sélectionner ou échanger
-                if(selected_r==-1){ selected_r=cursor_r; selected_c=cursor_c; }
+                if(choisi_l==-1){ choisi_l=curseur_l; choisi_c=curseur_c; }
                 else{
-                    int dr = abs(selected_r - cursor_r);
-                    int dc = abs(selected_c - cursor_c);
+                    int dr = abs(choisi_l - curseur_l);
+                    int dc = abs(choisi_c - curseur_c);
                     if((dr==1 && dc==0) || (dr==0 && dc==1)){
                         // sauvegarde des comptes
                         int before[5]; for(int i=0;i<5;i++) before[i]=Tableau_count_char(&b, "SFPOM"[i]);
-                        Tableau_swap(&b, selected_r,selected_c,cursor_r,cursor_c);
+                        Tableau_swap(&b, choisi_l,choisi_c,curseur_l,curseur_c);
                         int gained=0;
                         if(!Tableau_trouver_et_supprimer_les_correspondances(&b,&gained)){
-                            Tableau_swap(&b, selected_r,selected_c,cursor_r,cursor_c);
+                            Tableau_swap(&b, choisi_l,choisi_c,curseur_l,curseur_c);
                         } else {
                             // calculer les quantités supprimées
                             int after[5]; for(int i=0;i<5;i++) after[i]=Tableau_count_char(&b, "SFPOM"[i]);
@@ -167,10 +167,10 @@ void game_run(int reprendre) // Démarre le jeu, reprendre: 0=nouvelle partie, 1
                                 if(removed>0){ progres[i]+=removed; }
                             }
                             points += gained;
-                            moves_left--;
+                            coups_restants--;
                         }
                     }
-                    selected_r=-1; selected_c=-1;
+                    choisi_l=-1; choisi_c=-1;
                 }
             }
 
@@ -178,16 +178,16 @@ void game_run(int reprendre) // Démarre le jeu, reprendre: 0=nouvelle partie, 1
             int ok=1;
             for(int i=0;i<5;i++) if(progres[i] < contrats[niveau].targets[i]) ok=0;
             if(ok){
-                printf("Niveau %d terminé ! Appuyez sur une touche pour continuer.\n", niveau+1);
+                printf("Niveau %d terminé ! Appuyez sur une touche pour continuer.\n", niveau+1); // niveau terminé
                 _getch();
                 //  vérification de la réussite du contrat
                 sauvegarder(joueur, niveau+1);
                 break; //allez vers le prochain niveau
             }
 
-            if(moves_left<=0){
-                vies--;
-                if(vies<=0){
+            if(coups_restants<=0){ // vérifier l'échec du niveau
+                vies--; // perdre une vie
+                if(vies<=0){ // vérifier la fin du jeu
                     printf("Fin de la partie. Vous avez marqué %d points.\n", points);
                     sauvegarder(joueur, 0);
                     return;
@@ -195,10 +195,10 @@ void game_run(int reprendre) // Démarre le jeu, reprendre: 0=nouvelle partie, 1
                     printf("Niveau impossible. Vies restantes : %d. Appuyez sur une touche pour réessayer.\n", vies);
                     _getch();
                     init_tableau(&b);
-                    moves_left = contrats[niveau].maxMoves;
+                    coups_restants = contrats[niveau].maxMoves;
                     for(int i=0;i<5;i++) progres[i]=0;
                     // réinitialiser le minuteur du niveau pour éviter qu'il n'expire immédiatement
-                    debut = time(NULL);
+                    debut = time(NULL); // reset timer
                 }
             }
         }
