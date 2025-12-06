@@ -11,7 +11,6 @@ static int menu()
         printf("3) Quitter\n");
         printf("Choix: ");
         int c = getchar();
-        // consume rest of line
         while(getchar()!='\n' && !feof(stdin));
         if(c=='1') return 1;
         if(c=='2') return 2;
