@@ -52,7 +52,7 @@ void board_init(Board *b) // Initialise le plateau avec des caractères aléatoi
     }
 }
 
-static int color_for_char(char ch)
+static int couleur_car(char ch)
 {
     switch(ch){
         case 'S': return 14; // jaune
@@ -83,9 +83,9 @@ void board_print(Board *b, int cursor_r, int cursor_c, int selected_r, int selec
         fflush(stdout);
         return;
     } else {
-        int width = csbi.dwSize.X;
-        int height = csbi.dwSize.Y;
-        if(width < COLS*2 || height < ROWS+6){
+        int largeur = csbi.dwSize.X;
+        int hauteur = csbi.dwSize.Y;
+        if(largeur < COLS*2 || hauteur < ROWS+6){
             //repli : retour à un affichage ASCII simple
             for(int r=0;r<ROWS;r++){
                 for(int c=0;c<COLS;c++){
@@ -110,7 +110,7 @@ void board_print(Board *b, int cursor_r, int cursor_c, int selected_r, int selec
             gotoligcol(scr_r, scr_c);
             char ch = b->cells[r][c];
             if(ch == '\0') ch = ' ';
-            int col = color_for_char(ch);
+            int col = couleur_car(ch);
             if(r==selected_r && c==selected_c){
                 //sélectionné : caractère en arrière-plan lumineux
                 Color(col, 4);
