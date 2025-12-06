@@ -83,7 +83,7 @@ void game_run(int allow_resume)
     char player[64];
     printf("Entrez votre nom de joueur: ");
     if(!fgets(player,sizeof(player),stdin)) strcpy(player,"player\n");
-    // trim newline
+    // supprimer le retour à la ligne
     player[strcspn(player,"\r\n")] = '\0';
     int resume_level = load_progress(player);
     if(!allow_resume) resume_level = 0;
@@ -117,13 +117,13 @@ void game_run(int allow_resume)
                 printf("Time left: %d seconds\n", remaining );
             }
 
-            // non-blocking input loop: wait until keypress while allowing timer to be visible
+            // boucle d'entrée non bloquante : attendre l'appui d'une touche et le minuteur visible
             while(!kbhit()){
-                // update time display occasionally
+                //  mettre à jour l'affichage du temps de temps en temps
                 Sleep(80);
                 int elapsed = (int)(time(NULL)-start);
                 if(elapsed >= contracts[level].timeSec){
-                    // time's up
+                    // fin du temps
                     moves_left = 0;
                     break;
                 }
@@ -144,14 +144,14 @@ void game_run(int allow_resume)
                     int dr = abs(selected_r - cursor_r);
                     int dc = abs(selected_c - cursor_c);
                     if((dr==1 && dc==0) || (dr==0 && dc==1)){
-                        // snapshot counts
+                        // sauvegarde des comptes
                         int before[5]; for(int i=0;i<5;i++) before[i]=board_count_char(&b, "SFPOM"[i]);
                         board_swap(&b, selected_r,selected_c,cursor_r,cursor_c);
                         int gained=0;
                         if(!board_find_and_remove_matches(&b,&gained)){
                             board_swap(&b, selected_r,selected_c,cursor_r,cursor_c);
                         } else {
-                            // compute removed amounts
+                            // calculer les quantités supprimées
                             int after[5]; for(int i=0;i<5;i++) after[i]=board_count_char(&b, "SFPOM"[i]);
                             for(int i=0;i<5;i++){
                                 int removed = before[i]-after[i];
@@ -171,9 +171,9 @@ void game_run(int allow_resume)
             if(ok){
                 printf("Level %d completed! Press any key to continue.\n", level+1);
                 _getch();
-                // save progress to next level
+                //  vérification de la réussite du contrat
                 save_progress(player, level+1);
-                break; // go to next level
+                break; //allez vers le prochain niveau
             }
 
             if(moves_left<=0){
@@ -188,7 +188,7 @@ void game_run(int allow_resume)
                     board_init(&b);
                     moves_left = contracts[level].maxMoves;
                     for(int i=0;i<5;i++) progress[i]=0;
-                    // reset level timer so player doesn't immediately timeout again
+                    // réinitialiser le minuteur du niveau pour éviter qu'il n'expire immédiatement
                     start = time(NULL);
                 }
             }
@@ -198,4 +198,3 @@ void game_run(int allow_resume)
     printf("Bravo! Vous avez terminé les 3 tableaux. Points totaux: %d\n", points);
     save_progress(player, 3);
 }
-// commentaire
