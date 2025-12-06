@@ -18,7 +18,7 @@ static Contract contracts[3];
 
 static void init_contracts()
 {
-    // Level 1: 20 fraises(F), 50 oignons(O), 20 mandarines(M) in 30 moves
+    // Level 1: 20 fraises(F), 50 oignons(O), 20 mandarines(M) en 30 mouvements
     memset(&contracts,0,sizeof(contracts));
     contracts[0].targets[0] = 0;   // S
     contracts[0].targets[1] = 20;  // F
@@ -28,7 +28,7 @@ static void init_contracts()
     contracts[0].maxMoves = 30;
     contracts[0].timeSec = 180;
 
-    // Level 2: 55 S, 35 P, 30 F, 45 O in 40 moves
+    // Level 2: 55 S, 35 P, 30 F, 45 O en 40 mouvements
     contracts[1].targets[0] = 55; // S
     contracts[1].targets[1] = 30; // F
     contracts[1].targets[2] = 35; // P
@@ -37,7 +37,7 @@ static void init_contracts()
     contracts[1].maxMoves = 40;
     contracts[1].timeSec = 240;
 
-    // Level 3: harder targets
+    // Level 3: objectifs plus élevés
     contracts[2].targets[0] = 80; // S
     contracts[2].targets[1] = 60; // F
     contracts[2].targets[2] = 50; // P
