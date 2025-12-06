@@ -1,0 +1,66 @@
+# =========================
+# FICHIERS VS CODE
+# =========================
+.vscode/
+*.code-workspace
+
+# =========================
+# FICHIERS DE COMPILATION C
+# =========================
+*.exe
+*.obj
+*.o
+*.out
+*.a
+*.lib
+*.dll
+*.pdb
+*.idb
+
+# =========================
+# FICHIERS TEMPORAIRES / LOGS
+# =========================
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+
+# =========================
+# FICHIERS DE CONFIG WINDOWS / OS
+# =========================
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+ehthumbs.db
+
+# =========================
+# FICHIERS DE PROJETS IDE
+# (Code::Blocks, Visual Studio, etc.)
+# =========================
+*.cbp
+*.layout
+*.depend
+*.dev
+*.sdf
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.ncb
+*.opendb
+*.aps
+
+# =========================
+# DOSSIERS DE BUILD
+# =========================
+/build/
+/bin/
+/obj/
+/Debug/
+/Release/
+
+# =========================
+# AUTRES
+# =========================
+*.DS_Store
