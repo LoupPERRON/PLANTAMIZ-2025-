@@ -25,8 +25,8 @@ static void init_contrats() // Initialise les contrats pour chaque niveau
     contrats[0].targets[2] = 10;   // P
     contrats[0].targets[3] = 10;  // O
     contrats[0].targets[4] = 10;  // M
-    contrats[0].maxMoves = 30;
-    contrats[0].tempsSecondes = 180;
+    contrats[0].maxMoves = 17;
+    contrats[0].tempsSecondes = 80;
 
     // niveau 2: 15 S, 30 P, 20 O et 15 M en 40 mouvements avec 4 minutes max
     contrats[1].targets[0] = 15; // S
@@ -34,8 +34,8 @@ static void init_contrats() // Initialise les contrats pour chaque niveau
     contrats[1].targets[2] = 30; // P
     contrats[1].targets[3] = 20; // O
     contrats[1].targets[4] = 15;  // M
-    contrats[1].maxMoves = 40;
-    contrats[1].tempsSecondes = 240;
+    contrats[1].maxMoves = 25;
+    contrats[1].tempsSecondes = 160;
 
     // niveau 3: 20 S, 20 F, 20 P, 20 O et 20 M en 50 mouvements avec 5 minutes max
     contrats[2].targets[0] = 20; // S
@@ -43,8 +43,8 @@ static void init_contrats() // Initialise les contrats pour chaque niveau
     contrats[2].targets[2] = 20; // P
     contrats[2].targets[3] = 20; // O
     contrats[2].targets[4] = 20; // M
-    contrats[2].maxMoves = 50; // max moves
-    contrats[2].tempsSecondes = 300; // temps en secondes
+    contrats[2].maxMoves = 30; // max moves
+    contrats[2].tempsSecondes = 240; // temps en secondes
 }
 
 static void sauvegarder(const char *nom,int nouveau_niveau) // Sauvegarde la progresion du joueur dans un fichier
@@ -148,32 +148,33 @@ void game_run(int reprendre) // Démarre le jeu, reprendre: 0=nouvelle partie, 1
             else if(ch=='q' && curseur_c>0) curseur_c--; // déplacer le curseur vers la gauche
             else if(ch=='d' && curseur_c<COLONNES-1) curseur_c++; // déplacer le curseur vers la droite
             else if(ch==' '){ // sélectionner ou échanger
-                if(choisi_l==-1){ choisi_l=curseur_l; choisi_c=curseur_c; }
-                else{
+                if(choisi_l==-1){
+                    choisi_l = curseur_l; choisi_c = curseur_c;
+                } else {
                     int dr = abs(choisi_l - curseur_l);
                     int dc = abs(choisi_c - curseur_c);
                     if((dr==1 && dc==0) || (dr==0 && dc==1)){
-                        // sauvegarde des comptes
-                        int before[5]; for(int i=0;i<5;i++) before[i]=Tableau_count_char(&b, "SFPOM"[i]);
                         Tableau_swap(&b, choisi_l,choisi_c,curseur_l,curseur_c);
                         int gained=0;
-                        if(!Tableau_trouver_et_supprimer_les_correspondances(&b,&gained)){
+                        int removed[5] = {0,0,0,0,0};
+                        // appeler la version animée de la suppression (delai en ms)
+                        if(!Tableau_trouver_et_supprimer_les_correspondances(&b,&gained, removed, 600, curseur_l, curseur_c, choisi_l, choisi_c, niveau, coups_restants, vies, points, progres, contrats[niveau].targets)){
                             Tableau_swap(&b, choisi_l,choisi_c,curseur_l,curseur_c);
                         } else {
-                            // calculer les quantités supprimées
-                            int after[5]; for(int i=0;i<5;i++) after[i]=Tableau_count_char(&b, "SFPOM"[i]);
-                            for(int i=0;i<5;i++){
-                                int removed = before[i]-after[i];
-                                if(removed>0){ progres[i]+=removed; }
-                            }
+                            for(int i=0;i<5;i++) if(removed[i]>0) progres[i]+=removed[i];
                             points += gained;
                             coups_restants--;
+                            // mettre à jour immédiatement l'affichage du statut et du plateau
+                            effacer_ecran();
+                            afficher_statut(niveau,coups_restants,vies,points,progres,&contrats[niveau]);
+                            Tableau_print(&b,curseur_l,curseur_c,choisi_l,choisi_c);
+                            fflush(stdout);
                         }
                     }
                     choisi_l=-1; choisi_c=-1;
                 }
             }
-
+            
             // check completion
             int ok=1;
             for(int i=0;i<5;i++) if(progres[i] < contrats[niveau].targets[i]) ok=0;

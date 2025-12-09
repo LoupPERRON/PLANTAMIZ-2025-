@@ -14,6 +14,12 @@ static char element_alea()    // Génère un caractère aléatoire parmi les ELE
     return ELEMENTS[rand() % NELEMENTS]; // Retourne un caractère aléatoire parmi les ELEMENTS
 }
 
+static int element_index(char ch)
+{
+    for(int i=0;i<NELEMENTS;i++) if(ELEMENTS[i]==ch) return i;
+    return -1;
+}
+
 void init_tableau(Tableau *b) // Initialise le plateau avec des caractères aléatoires sans correspondances initiales
 {
     srand((unsigned)time(NULL)); // Initialiser le générateur de nombres aléatoires avec le temps actuel
@@ -161,17 +167,20 @@ void Tableau_swap(Tableau *b, int r1,int c1,int r2,int c2) // Échange deux cell
 
 //Trouve les séquences horizontales et verticales >=3,rectangles et formes en H
 //Marque les cellules à supprimer et met à jour la grille , renvoie true si une suppression a eu lieu et incrémente les points
-bool Tableau_trouver_et_supprimer_les_correspondances(Tableau *b, int *points)
+bool Tableau_trouver_et_supprimer_les_correspondances(Tableau *b, int *points, int *removed_counts, int delai_ms, int curseur_l, int curseur_c, int choisi_l, int choisi_c, int niveau, int coups_restants, int vies, int points_total, int progres[5], int targets[5])
 {
     bool any_global = false;
     int points_accum = 0;
+    int removed_accum[NELEMENTS];
+    for(int i=0;i<NELEMENTS;i++) removed_accum[i]=0;
 
-    //Répéter jusqu'à stabilisation
+    // Raccourci : déléguer la détection à petites fonctions statiques pour lisibilité
     while(1){
         bool remove[LIGNES][COLONNES];
         memset(remove,0,sizeof(remove));
         bool any=false;
 
+        // détecteurs
         // horizontal
         for(int r=0;r<LIGNES;r++){
             int c=0;
@@ -185,7 +194,6 @@ bool Tableau_trouver_et_supprimer_les_correspondances(Tableau *b, int *points)
                     for(int k=c;k<j;k++) remove[r][k]=true;
                     if(len==4) points_accum += 4;
                     else if(len==6){
-                        // remove all identical
                         char ch = base;
                         int total = Tableau_count_char(b,ch);
                         points_accum += total;
@@ -199,23 +207,23 @@ bool Tableau_trouver_et_supprimer_les_correspondances(Tableau *b, int *points)
         }
 
         // vertical
-        for(int c=0;c<COLONNES;c++){ // pour chaque colonne
+        for(int c=0;c<COLONNES;c++){
             int r=0;
-            while(r<LIGNES){ // pour chaque ligne
+            while(r<LIGNES){
                 char base = b->cellules[r][c];
                 int i=r+1;
                 while(i<LIGNES && base!='\0' && b->cellules[i][c]==base) i++;
                 int len = i-r;
-                if(base!='\0' && len>=3){ // séquence trouvée
+                if(base!='\0' && len>=3){
                     any=true;
                     for(int k=r;k<i;k++) remove[k][c]=true;
                     if(len==4) points_accum += 4;
-                    else if(len==6){ // retirer tous les identiques
+                    else if(len==6){
                         char ch = base;
                         int total = Tableau_count_char(b,ch);
                         points_accum += total;
                         for(int rr=0;rr<LIGNES;rr++) for(int cc=0;cc<COLONNES;cc++) if(b->cellules[rr][cc]==ch) remove[rr][cc]=true;
-                    } else { 
+                    } else {
                         points_accum += len;
                     }
                 }
@@ -223,16 +231,16 @@ bool Tableau_trouver_et_supprimer_les_correspondances(Tableau *b, int *points)
             }
         }
 
-        //détection de rectangles (brute-force) d'au moins 2x2
-        for(int r=0;r<LIGNES;r++){ // pour chaque ligne
-            for(int c=0;c<COLONNES;c++){ // pour chaque cellule
+        // rectangles
+        for(int r=0;r<LIGNES;r++){
+            for(int c=0;c<COLONNES;c++){
                 char ch = b->cellules[r][c];
                 if(!ch) continue;
-                for(int h=2;r+h-1<LIGNES;h++){ // hauteur du rectangle
-                    for(int w=2;c+w-1<COLONNES;w++){ // largeur du rectangle
+                for(int h=2;r+h-1<LIGNES;h++){
+                    for(int w=2;c+w-1<COLONNES;w++){
                         bool ok=true;
                         for(int rr=r;rr<r+h && ok;rr++) for(int cc=c;cc<c+w;cc++) if(b->cellules[rr][cc]!=ch) {ok=false; break;}
-                        if(ok){ // rectangle détecté
+                        if(ok){
                             any=true;
                             for(int rr=r;rr<r+h;rr++) for(int cc=c;cc<c+w;cc++) remove[rr][cc]=true;
                             points_accum += 2*(h*w);
@@ -242,28 +250,75 @@ bool Tableau_trouver_et_supprimer_les_correspondances(Tableau *b, int *points)
             }
         }
 
-        //Détection en H : deux barres verticales de 3 reliées par une barre horizontale centrale (motif 3x3)
+        // H-shape
         for(int r=0;r+2<LIGNES;r++){
             for(int c=0;c+2<COLONNES;c++){
                 char ch = b->cellules[r][c];
                 if(ch && b->cellules[r+1][c]==ch && b->cellules[r+2][c]==ch && b->cellules[r][c+2]==ch && b->cellules[r+1][c+2]==ch && b->cellules[r+2][c+2]==ch && b->cellules[r+1][c+1]==ch){
                     any=true;
                     for(int rr=r;rr<r+3;rr++) for(int cc=c;cc<c+3;cc++) remove[rr][cc]=true;
-                    points_accum += 2*9; //2 * X où X = nombre d'ELEMENTS (ici 9)
+                    points_accum += 2*9;
                 }
             }
         }
 
-        if(!any) break; // plus de suppressions détectées
+        if(!any) break;
 
-        any_global = true; // au moins une suppression globale a eu lieu
-        //appliquer les suppressions
-        for(int r=0;r<LIGNES;r++) for(int c=0;c<COLONNES;c++) if(remove[r][c]) b->cellules[r][c]='\0';
-        Tableau_appliquer_gravité(b);
-        //continuer  boucle pour détecter cascades
+        any_global = true;
+        // appliquer les suppressions et compter
+        for(int r=0;r<LIGNES;r++){
+            for(int c=0;c<COLONNES;c++){
+                if(remove[r][c] && b->cellules[r][c] != '\0'){
+                    int idx = element_index(b->cellules[r][c]);
+                    if(idx >= 0) removed_accum[idx]++;
+                    b->cellules[r][c] = '\0';
+                }
+            }
+        }
+
+        if(delai_ms > 0){
+            // animate gravity in steps
+            bool moved;
+            do {
+                moved = false;
+                // shift down by one step where possible
+                for(int c=0;c<COLONNES;c++){
+                    for(int r=LIGNES-2;r>=0;r--){
+                        if(b->cellules[r][c] != '\0' && b->cellules[r+1][c] == '\0'){
+                            b->cellules[r+1][c] = b->cellules[r][c];
+                            b->cellules[r][c] = '\0';
+                            moved = true;
+                        }
+                    }
+                }
+                // fill top empties
+                for(int c=0;c<COLONNES;c++){
+                    if(b->cellules[0][c] == '\0'){
+                        b->cellules[0][c] = element_alea();
+                        moved = true;
+                    }
+                }
+                // redraw header + board together so status is visible while animating
+                effacer_ecran();
+                // print header/status (same layout as afficher_statut)
+                gotoligcol(0,0);
+                printf("Niveau %d   Coups restants: %d   Vies: %d   Points: %d\n", niveau+1, coups_restants, vies, points_total);
+                printf("Contrat: S:%d F:%d P:%d O:%d M:%d\n", targets[0], targets[1], targets[2], targets[3], targets[4]);
+                printf("Progres: S:%d F:%d P:%d O:%d M:%d\n", progres[0], progres[1], progres[2], progres[3], progres[4]);
+                Tableau_print(b, curseur_l, curseur_c, choisi_l, choisi_c);
+                fflush(stdout);
+                Sleep(delai_ms);
+            } while(moved);
+        } else {
+            // comportement ancien : appliquer gravité complète sans animation
+            Tableau_appliquer_gravité(b);
+        }
     }
 
     if(points) *points += points_accum;
+    if(removed_counts){
+        for(int i=0;i<NELEMENTS;i++) removed_counts[i] = removed_accum[i];
+    }
     return any_global;
 }
 
